@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 
     int shm_fd;
 	void *ptr;
-    const char *name = "MWOS";
+    const char *name = "mdw15d_cop4610";
     const int SIZE = 4096;
 
    	/* create the pipe */
