@@ -11,8 +11,8 @@
 #include <sys/shm.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
-#include <unistd.h>     // added by Gang-Ryung
-#include <sys/types.h>  // added by Gang-Ryung
+#include <unistd.h>
+#include <sys/types.h> 
 
 #define BUFFER_SIZE 25
 #define READ_END	0
@@ -66,11 +66,6 @@ int main(int argc, char **argv)
              return -1;
         }
 
-        /* read file into the pipe through the allocated buffer */ 
-        // while (fgets(buffer, BUFFER_SIZE, fpIn)){
-        //     write(fd[WRITE_END], buffer, strlen(buffer)+1);
-        //     buffer[0]='\0'; 
-        // } 
         /* create the shared memory segment */
         shm_fd = shm_open(name, O_CREAT | O_RDWR, 0666);
 
@@ -84,15 +79,20 @@ int main(int argc, char **argv)
             return -1;
         }
 
+        /* Seek to the beginning of the file */
+        fseek(fpIn, SEEK_SET, 0);
+
+        /* Read and display data */
+        fread(ptr, 1, SIZE, fpIn);
+
         /**
         * Now write to the shared memory region.
         *
         * Note we must increment the value of ptr after each write.
         */
         
-        const char *message0= "Studying ";
-        sprintf(ptr,"%s",message0);
-        ptr += strlen(message0);
+        sprintf(ptr,"%s",(char *)ptr);
+        ptr += strlen(ptr);
 
         /* close input file */ 
         fclose(fpIn);
