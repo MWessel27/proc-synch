@@ -1,7 +1,9 @@
 /*
-  Simple program demonstrates to do simple FILE access with
-  fopen, fwrite, fseek and fread 
-  http://manpages.courier-mta.org/htmlman3/fread.3.html
+    Description: Process synchronization for copying a file through shared POSIX memory
+        and a parent and child process.
+    Author: Mikal Wessel
+    Date: 04/09/2017
+    FSU ID: mdw15d 
 */
 
 #include <stdio.h>

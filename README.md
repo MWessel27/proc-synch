@@ -1,4 +1,6 @@
 # Process Synchronization
+# Description
+Process synchronization for copying a file through shared POSIX memory and a parent and child process.
 # Part 1: Getting Started
 1. Clone this repo
 2. scp the executed files to linprog
