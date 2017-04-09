@@ -14,7 +14,6 @@
 #include <unistd.h>
 #include <sys/types.h> 
 
-#define BUFFER_SIZE 25
 #define READ_END	0
 #define WRITE_END	1
 
@@ -27,6 +26,7 @@ int main(int argc, char **argv)
         exit(-1);
     }
 
+    /* Initialize vars */
     pid_t pid;
     int fd[2];
 
@@ -56,13 +56,12 @@ int main(int argc, char **argv)
 		/* close the unused end of the pipe */
 		close(fd[READ_END]);
 
-        //char buffer[BUFFER_SIZE]; 
         /* open input file */ 
         fpIn = fopen(argv[1], "r"); 
 
         /* make sure input file exists */
         if (fpIn == NULL) { 
-             fprintf(stderr, "Error opening file %s\n", argv[1]); 
+             fprintf(stderr, "Failed to read from file %s\n", argv[1]); 
              return -1;
         }
 
@@ -105,8 +104,23 @@ int main(int argc, char **argv)
 		/* close end of the pipe since it is unused */
 		close(fd[WRITE_END]);
 
-        /* open the output file for writing and create if it doesnt exist */
+        /* open input file */ 
+        fpOut = fopen(argv[2], "r"); 
+
+        /* make sure output file does not exist already */
+        if (fpOut != NULL) { 
+            printf("Output file [%s] already exists, please remove it before continuing.\n", argv[2]);                                                                                                                                                                
+            return -1;
+        }
+
+        /* open the output file for writing and create if it does not exist */
         fpOut = fopen(argv[2], "w+");
+
+        /* make sure output file is created */
+        if (fpOut == NULL) { 
+             fprintf(stderr, "Failed to create file %s\n", argv[2]); 
+             return -1;
+        }
 
         /* open the shared memory segment */
         shm_fd = shm_open(name, O_RDONLY, 0666);
@@ -123,7 +137,6 @@ int main(int argc, char **argv)
         }
 
         /* now read from the shared memory region */
-        //printf("%s",(char *)ptr);  // type-cast Gang-Ryung
         fwrite(ptr,  1, strlen(ptr) + 1, fpOut);
 
         /* remove the shared memory segment */
