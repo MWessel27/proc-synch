@@ -7,3 +7,12 @@
 4. ssh into linprog and navigate to /'project directory'
 5. Run `make clean`
 6. Run `make`
+
+# Part 2: Setting up GDB
+1. `make clean`
+2. `make`
+3. Open another terminal session and run gdb
+
+# Helpful tips
+- Quitting gdb session:
+    - `Ctrl-d`
