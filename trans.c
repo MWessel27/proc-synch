@@ -7,6 +7,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
 #include <unistd.h>     // added by Gang-Ryung
 #include <sys/types.h>  // added by Gang-Ryung
 
@@ -25,6 +29,11 @@ int main(int argc, char **argv)
 
     pid_t pid;
     int fd[2];
+
+    int shm_fd;
+	void *ptr;
+    const char *name = "MWOS";
+    const int SIZE = 4096;
 
    	/* create the pipe */
 	if (pipe(fd) == -1) {
@@ -47,7 +56,7 @@ int main(int argc, char **argv)
 		/* close the unused end of the pipe */
 		close(fd[READ_END]);
 
-        char buffer[BUFFER_SIZE]; 
+        //char buffer[BUFFER_SIZE]; 
         /* open input file */ 
         fpIn = fopen(argv[1], "r"); 
 
@@ -58,10 +67,33 @@ int main(int argc, char **argv)
         }
 
         /* read file into the pipe through the allocated buffer */ 
-        while (fgets(buffer, BUFFER_SIZE, fpIn)){
-            write(fd[WRITE_END], buffer, strlen(buffer)+1);
-            buffer[0]='\0'; 
-        } 
+        // while (fgets(buffer, BUFFER_SIZE, fpIn)){
+        //     write(fd[WRITE_END], buffer, strlen(buffer)+1);
+        //     buffer[0]='\0'; 
+        // } 
+        /* create the shared memory segment */
+        shm_fd = shm_open(name, O_CREAT | O_RDWR, 0666);
+
+        /* configure the size of the shared memory segment */
+        ftruncate(shm_fd,SIZE);
+
+        /* now map the shared memory segment in the address space of the process */
+        ptr = mmap(0,SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+        if (ptr == MAP_FAILED) {
+            printf("Map failed\n");
+            return -1;
+        }
+
+        /**
+        * Now write to the shared memory region.
+        *
+        * Note we must increment the value of ptr after each write.
+        */
+        
+        const char *message0= "Studying ";
+        sprintf(ptr,"%s",message0);
+        ptr += strlen(message0);
+
         /* close input file */ 
         fclose(fpIn);
 
@@ -76,16 +108,28 @@ int main(int argc, char **argv)
         /* open the output file for writing and create if it doesnt exist */
         fpOut = fopen(argv[2], "w+");
 
-        /* loop through the file and write to the buffer */
-        while(1) {
-            char buffer[BUFFER_SIZE];
-            if (read(fd[READ_END], buffer, BUFFER_SIZE) != 0) {
-                fprintf(fpOut,"%s",buffer);
-                fflush(fpOut);
-            } else {
-                /* break if there are no characters left to read */
-                break;
-            } 
+        /* open the shared memory segment */
+        shm_fd = shm_open(name, O_RDONLY, 0666);
+        if (shm_fd == -1) {
+            printf("shared memory failed\n");
+            exit(-1);
+        }
+
+        /* now map the shared memory segment in the address space of the process */
+        ptr = mmap(0,SIZE, PROT_READ, MAP_SHARED, shm_fd, 0);
+        if (ptr == MAP_FAILED) {
+            printf("Map failed\n");
+            exit(-1);
+        }
+
+        /* now read from the shared memory region */
+        //printf("%s",(char *)ptr);  // type-cast Gang-Ryung
+        fwrite(ptr,  1, strlen(ptr) + 1, fpOut);
+
+        /* remove the shared memory segment */
+        if (shm_unlink(name) == -1) {
+            printf("Error removing %s\n",name);
+            exit(-1);
         }
 
 		/* close the file and write end of the pipe */
