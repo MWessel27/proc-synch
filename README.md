@@ -6,7 +6,7 @@
     - `scp -r help 'username'@linprog.cs.fsu.edu:/home/majors/'username'/'project directory'`
 4. ssh into linprog and navigate to /'project directory'
 5. Run `make clean`
-6. Run `make`
+6. Run `gcc -std=c99 -Wall -Wextra -D_XOPEN_SOURCE=700 -o trans trans.c -lrt`
 
 # Part 2: Setting up GDB
 1. `make clean`
